@@ -1,8 +1,10 @@
 package com.tenco.blog.model;
 
 
+import com.tenco.blog.util.MyDateUtil;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Timestamp;
 
@@ -22,5 +24,20 @@ public class Board {
     private String title;
     private String content;
     private Timestamp createdAt;
+
+    // createdAt >> 포멧하는 메소드 만들어보기
+    public String getTime() {
+        return MyDateUtil.timestampFormat(createdAt);
+    }
+
+//    // 테스트코드
+//    public static void main(String[] args) {
+//        boolean isBlank = StringUtils.isBlank("     ");
+//        System.out.println(isBlank);
+//
+//        // 문자열 뒤집기
+//        String reversed = StringUtils.reverse("tencoding");
+//        System.out.println(reversed);
+//    }
 }
 

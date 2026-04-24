@@ -6,7 +6,6 @@ server:
   port: 8080
 
 
-
 logging:
   level:
     root: INFO # 모든 라이브러리는 INFO이상만 출력

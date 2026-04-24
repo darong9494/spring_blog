@@ -16,7 +16,6 @@ public class BoardNativeRepository {
     // 데이터베이스와 모든 작업을 담당
     private final EntityManager em;
 
-
     //트랜잭션 처리해줌
     @Transactional
     public void save(String title, String content, String username) {
