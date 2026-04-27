@@ -50,21 +50,15 @@ public class BoardController {
 
     /**
      * 게시글 목록 화면 요청
-     * * 주소설계: http://localhost:8080/board/save-form
+     * * 주소설계: http://localhost:8080/
      *
      * @return
      */
     @GetMapping({"/", "index"})
     public String list(Model model) {
-        //
-        List<Board> boardList = boardNativeRepository.findAll();
+        //List<Board> boardList = boardNativeRepository.findAll();
+        List<Board> boardList = boardPersistRepository.findAll();
         model.addAttribute("boardList", boardList);
-        System.out.println(boardList.toString());
-        for (int i = 0; i < boardList.size(); i++) {
-            System.out.println(boardList.get(i).getTitle());
-            System.out.println("----------------------------");
-
-        }
         return "board/list";
     }
 
@@ -73,7 +67,8 @@ public class BoardController {
     @GetMapping("/board/{id}")
     public String detailPage(@PathVariable(name = "id") Integer id, Model model) {
         // 유효성 검사, 인증 검사
-        Board board = boardNativeRepository.findById(id);
+        // Board board = boardNativeRepository.findById(id);
+        Board board = boardPersistRepository.findById(id);
         model.addAttribute("board", board);
 
         return "board/detail";

@@ -5,6 +5,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository // IoC
 @RequiredArgsConstructor // DI 처리됨
 public class BoardPersistRepository {
@@ -36,5 +38,33 @@ public class BoardPersistRepository {
         // 4. board객체의 id 변수값을 1차 캐시에 map구조로 보관되어진다.
         // 1차 캐시에 들어간 영속상태로 변경된 Object를 리턴한다.
         return board;
+    }
+
+    // JPQL을 사용한 게시글 목록 조회
+    public List<Board> findAll() {
+        // JPQL : 엔티티 객체를 대상으로하는 객체지향 쿼리
+        // Board는 엔티티 클래스명, b는 별칭으로 사용
+        // 주의! 테이블명이 아닌 클래스명 사용해야함(엔티티명)
+        String jpql = """
+                select b from Board b order by b.createdAt desc
+                """;
+
+        List<Board> boardList = em.createQuery(jpql, Board.class).getResultList();
+        return boardList;
+    }
+
+    // 게시글 상세보기 요청 (조회) (필수값 기본키로 조회)
+    public Board findById(Integer id) {
+        // 영속성 컨텍스트를 사용하기 위해서
+        // 1. 엔티티 매니저에서 제공하는 메소드를 활용하는 방법
+        Board board = em.find(Board.class, id);
+        // 2. JPQL 문법으로 Board를 조회하는 방법
+        String jpql = """
+                select b from Board b where b.id = :id
+                """;
+
+        return em.createQuery(jpql, Board.class)
+                .setParameter("id", id)
+                .getSingleResult();
     }
 }
