@@ -56,6 +56,7 @@ public class BoardPersistRepository {
     // 게시글 상세보기 요청 (조회) (필수값 기본키로 조회)
     public Board findById(Integer id) {
         // 영속성 컨텍스트를 사용하기 위해서
+        // 1차 캐시공간에 저장된거 바로 읽어내서 쓸라고 데이터베이스까지 가지말고
         // 1. 엔티티 매니저에서 제공하는 메소드를 활용하는 방법
         Board board = em.find(Board.class, id);
         // 2. JPQL 문법으로 Board를 조회하는 방법
@@ -66,5 +67,19 @@ public class BoardPersistRepository {
         return em.createQuery(jpql, Board.class)
                 .setParameter("id", id)
                 .getSingleResult();
+    }
+
+    // 게시글 삭제
+    @Transactional
+    public void deleteById(Integer id) {
+        // 1. 먼저 삭제하고자하는 엔티티를 조회해야함
+        // 1.1 조회가 되었기 때문에 board는 영속화된 상태가 되었다.
+        Board board = em.find(Board.class, id);
+
+        if (board == null) {
+            throw new IllegalArgumentException("삭제할 게시글을 찾을 수 없습니다: " + id);
+        }
+
+        em.remove(board);
     }
 }

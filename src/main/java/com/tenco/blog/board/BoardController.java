@@ -74,10 +74,12 @@ public class BoardController {
         return "board/detail";
     }
 
+    // 게시글 삭제하기
     // /board{{board.id}}/delete
     @PostMapping("/board/{id}/delete")
     public String deleteProc(@PathVariable(name = "id") Integer id) {
-        boardNativeRepository.deleteById(id);
+        // boardNativeRepository.deleteById(id);
+        boardPersistRepository.deleteById(id);
         // PRG패턴 (Post >> Redirect >> Get) 적용
         return "redirect:/";
     }
@@ -110,6 +112,5 @@ public class BoardController {
         // 리다이렉트는 뷰 리절브 동작이 아닌 (내부 파일 찾는것이 아니고 )
         // 그냥 새로운 HTTP Get 요청이다.
         return "redirect:/board/" + id;
-
     }
 }
