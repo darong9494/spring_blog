@@ -13,6 +13,8 @@ public class BoardRequest {
         private String title;
         private String content;
 
+        // 편의 기능 설계 가능
+        // DTO에서 Entity로 변환해주는 편의 메소드.
         public Board toEntity() {
             return Board.builder()
                     .title(title)

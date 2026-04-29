@@ -1,5 +1,6 @@
 package com.tenco.blog.board;
 
+import com.tenco.blog.user.User;
 import com.tenco.blog.util.MyDateUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,7 +16,7 @@ import java.sql.Timestamp;
 @Entity
 @Table(name = "board_tb")
 @NoArgsConstructor // 기본 생성자 (필수)
-@AllArgsConstructor // 전체 맴버 변수를 넣을수 있는 생성자
+@AllArgsConstructor // 전체 멤버 변수를 넣을수 있는 생성자
 @Builder // 빌더 패턴
 public class Board {
 
@@ -27,6 +28,17 @@ public class Board {
     private String username;
     private String title;
     private String content;
+
+    // 연관관계 설정 해주어야 한다.
+    // 다대일 연관관계 : 여러개 게시글이 하나의 사용자에게 속한다.
+    // FetchType 전략 : EAGER, LAZY
+    //   EAGER - 조회시 한번에 다 들고 와라 ( 1번 게시글 조회시 한번 조인까지 해라)
+    //   LAZY - 처음부터 Board 조회할 때 User 정보를 가져오지 마. 필요할 때 한번 더 조회 해.
+    @ManyToOne(fetch = FetchType.EAGER)
+    // @OneToMany
+    // @OneToOne
+    @JoinColumn(name = "user_id") // 외래키 컬럼명 표시 됨
+    private User user;
 
     // @CreationTimestamp : 하이버네이트가 제공하는 어노테이션
     // 특정하나의 엔티티가 저장이 될때 현재 시간을 자동으로 저장해라는 설정이다.

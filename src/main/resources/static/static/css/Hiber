@@ -1,0 +1,76 @@
+Hibernate:
+    select
+        b1_0.id,
+        b1_0.content,
+        b1_0.created_at,
+        b1_0.title,
+        b1_0.user_id
+    from
+        board_tb b1_0
+    order by
+        b1_0.id desc
+Hibernate:
+    select
+        u1_0.id,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.password,
+        u1_0.username
+    from
+        user_tb u1_0
+    where
+        u1_0.id=?
+kim
+Hibernate:
+    select
+        u1_0.id,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.password,
+        u1_0.username
+    from
+        user_tb u1_0
+    where
+        u1_0.id=?
+hong
+Hibernate:
+    select
+        u1_0.id,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.password,
+        u1_0.username
+    from
+        user_tb u1_0
+    where
+        u1_0.id=?
+cos
+cos
+Hibernate:
+    select
+        u1_0.id,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.password,
+        u1_0.username
+    from
+        user_tb u1_0
+    where
+        u1_0.id=?
+ssar
+ssar
+ssar
+Hibernate:
+    select
+        u1_0.id,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.password,
+        u1_0.username
+    from
+        user_tb u1_0
+    where
+        u1_0.id=?
+admin
+admin
+admin
