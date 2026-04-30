@@ -22,15 +22,15 @@ spring:
 
   # 데이터베이스 연결 설정 (MySQL)
   datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/myblog?serverTimezone=Asia/Seoul
-#    username: root
-#    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/myblog?serverTimezone=Asia/Seoul
+    username: root
+    password: root
 
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:test
-    username: sa
-    password:
+#    driver-class-name: org.h2.Driver
+#    url: jdbc:h2:mem:test
+#    username: sa
+#    password:
   h2:
     console:
       enabled: true
@@ -38,6 +38,7 @@ spring:
 #   초기 데이터 설정
   sql:
     init:
+      mode: always # 외부 DB(MySQL)에서도 실행되도록 설정
       data-locations:
         - classpath:db/data.sql
 
@@ -50,9 +51,13 @@ spring:
     # SQL 쿼리를 콘솔에 출력 (개발용)
     show-sql: true
     properties:
-        hibernate:
-        # SQL 쿼리를 보기좋게 포맷팅
+      hibernate:
+        # SQL 쿼리를 보기 좋게 포맷팅
         format_sql: true
+        # N + 1 문제를 완화하기 위한 완충장치 설정
+        # 기본 where절에서 in절 (in 쿼리로 변경해준다.)
+        default_batch_fetch_size: 100
 
     # data.sql 파일을 하이버네이트 초기화 이후에 실행
     defer-datasource-initialization: true
+

@@ -34,9 +34,10 @@ public class Board {
     // FetchType 전략 : EAGER, LAZY
     //   EAGER - 조회시 한번에 다 들고 와라 ( 1번 게시글 조회시 한번 조인까지 해라)
     //   LAZY - 처음부터 Board 조회할 때 User 정보를 가져오지 마. 필요할 때 한번 더 조회 해.
-    @ManyToOne(fetch = FetchType.EAGER)
-    // @OneToMany
-    // @OneToOne
+    // @ManyToOne = 다대일관계
+    @ManyToOne(fetch = FetchType.LAZY)
+    // @OneToMany = 일 대 N 관계
+    // @OneToOne = 일 대 일 관계
     @JoinColumn(name = "user_id") // 외래키 컬럼명 표시 됨
     private User user;
 
@@ -54,7 +55,6 @@ public class Board {
 
     // 수정 편의 기능 만들기
     public void update(BoardRequest.UpdateDTO updateDTO) {
-        this.username = updateDTO.getUsername();
         this.title = updateDTO.getTitle();
         this.content = updateDTO.getContent();
 

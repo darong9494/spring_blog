@@ -42,11 +42,14 @@ public class BoardPersistRepository {
 
     // JPQL을 사용한 게시글 목록 조회
     public List<Board> findAll() {
+        // join fetch 사용 쿼리 변경함  : Board와 연관된 데이터를 JOIN 한번에 가져와
+        // N + 1 문제를 해결하는 정밀 제어,
+        // join fetch는 그냥 한번에 다 가져와 라는 뜻
         // JPQL : 엔티티 객체를 대상으로하는 객체지향 쿼리
         // Board는 엔티티 클래스명, b는 별칭으로 사용
         // 주의! 테이블명이 아닌 클래스명 사용해야함(엔티티명)
         String jpql = """
-                select b from Board b order by b.createdAt desc
+                select b from Board b join fetch b.user order by b.createdAt desc
                 """;
 
         List<Board> boardList = em.createQuery(jpql, Board.class).getResultList();
@@ -84,7 +87,7 @@ public class BoardPersistRepository {
     }
 
     @Transactional
-    public void updateById(Integer id, BoardRequest.UpdateDTO updateDTO) {
+    public Board updateById(Integer id, BoardRequest.UpdateDTO updateDTO) {
         // 수정할때 항상 조회 먼저 확인
         Board boardEntity = em.find(Board.class, id);
         // em.find() 호출 후 리턴받은 board는 영속상태다.
@@ -100,7 +103,7 @@ public class BoardPersistRepository {
         // boardEntity.id << 값이 있나 없나 >>
         // 새로운 board 생성된거임
         // em.persist(boardEntity);
-
         // 앞으로 수정 기능을 만들어줄 때 더티체킹 동작으로 사용하도록.
+        return boardEntity;
     }
 }

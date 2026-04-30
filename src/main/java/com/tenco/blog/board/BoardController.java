@@ -1,5 +1,7 @@
 package com.tenco.blog.board;
 
+import com.tenco.blog.user.User;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -7,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+
 import java.util.List;
 
 @Slf4j
@@ -14,7 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor // DI
 public class BoardController {
     // DI 처리해줘야 빨간줄 안나옴
-    private final BoardNativeRepository boardNativeRepository;
     private final BoardPersistRepository boardPersistRepository;
 
     /**
@@ -24,8 +26,13 @@ public class BoardController {
      * 주소설계: http://localhost:8080/board/save-form
      */
     @GetMapping("/board/save-form")
-    public String saveForm() {
-
+    public String saveForm(HttpSession httpSession) {
+        // 로그인 여부 체크 - 즉 로그인한 사용자만 이 페이지 안에 들어올 수 있음
+        // 1. 인증검사
+        User sessionUser = (User) httpSession.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login-form";
+        }
         return "board/save-form";
     }
 
@@ -38,12 +45,31 @@ public class BoardController {
 
     @PostMapping("/board/save")
     // 사용자요청 >> HTTP요청 메시지(Post)
-    public String saveProc(BoardRequest.SaveDTO saveDTO) {
+    public String saveProc(BoardRequest.SaveDTO saveDTO, HttpSession session) {
 
-        Board board = saveDTO.toEntity();
-        boardPersistRepository.save(board);
+        log.info("=== 게시글 저장 요청 ===");
+        // 이 요청시 사용자가 로그인을 했다면 로그인 정보를 세션 메모리에서 가져오면 된다.
+        // 1. 세션에서 로그인한 사용자 정보 가져오기
+        User sessionUser = (User) session.getAttribute("sessionUser");
 
-        return "redirect:/";
+        // 2. 로그인 여부 확인
+        if (sessionUser == null) {
+            return "redirect:/login-form";
+        }
+
+        try {
+            // 3. 로그인 된 사용자
+            // 3.1 유효성 검사
+            saveDTO.validate();
+
+            Board board = saveDTO.toEntity(sessionUser);
+            boardPersistRepository.save(board);
+
+            return "redirect:/";
+        } catch (Exception e) {
+            System.out.println("에러발생 : " + e.getMessage());
+            return "board/save-form";
+        }
     }
 
     /**
@@ -73,22 +99,50 @@ public class BoardController {
     }
 
     // 게시글 삭제하기
+    // 1. 로그인 여부 확인
+    // 2. 삭제할 게시글이 본인이 작성한 게시글인지 확인 (권한 확인, 인가 처리)
+    // 3. 인가처리 후 삭제 진행
     // /board{{board.id}}/delete
     @PostMapping("/board/{id}/delete")
-    public String deleteProc(@PathVariable(name = "id") Integer id) {
-        // boardNativeRepository.deleteById(id);
-        boardPersistRepository.deleteById(id);
+    public String deleteProc(@PathVariable(name = "id") Integer id, HttpSession session) {
+        log.info("--- 게시글 삭제 요청 ---");
+        // 인증 검사
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login-form";
+        }
+
+        try {
+            // 삭제할 게시글 조회 (권한체크, 인가처리)
+            Board board = boardPersistRepository.findById(id);
+            if (board.getUser().getId() == sessionUser.getId()) {
+                // boardNativeRepository.deleteById(id);
+                boardPersistRepository.deleteById(id);
+            }
+        } catch (Exception e) {
+            return "redirect:/";
+        }
         // PRG패턴 (Post >> Redirect >> Get) 적용
         return "redirect:/";
     }
 
+    // 게시글 수정화면 요청
     // http://localhost:8080/board/1/update-form
     @GetMapping("/board/{id}/update-form")
-    public String updateFormPage(@PathVariable(name = "id") Integer id, Model model) {
-        // 사용자에게 해당 게시물 내용을 보여줘야 한다.
+    public String updateFormPage(@PathVariable(name = "id") Integer id, Model model, HttpSession session) {
+        // 인증 처리
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login-form";
+        }
 
+        // 인가처리
+        // 사용자에게 해당 게시물 내용을 보여줘야 한다.
         // 조회 기능 - 게시글 id로
         Board board = boardPersistRepository.findById(id);
+        if (sessionUser.getId() != board.getUser().getId()) {
+            throw new RuntimeException("수정 권한이 없습니다.");
+        }
         model.addAttribute("board", board);
         return "board/update-form";
     }
@@ -97,14 +151,24 @@ public class BoardController {
     @PostMapping("/board/{id}/update")
     // 메세지 컨버터란 객체가 동작해서 자동으로 객체를 생성하고 값을 매핑해준다.
     public String updateProc(@PathVariable(name = "id") Integer id,
-                             BoardRequest.UpdateDTO updateDTO) {
-
-        // 1. 유효성 검사
-        // username, title, content 유효성 검사됨
-        updateDTO.validate();
-
-        boardPersistRepository.updateById(id, updateDTO);
-
+                             BoardRequest.UpdateDTO updateDTO, HttpSession session) {
+        // 인증검사
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login-form";
+        }
+        // 유효성 검사
+        try {
+            updateDTO.validate();
+            // 인가검사
+            Board board = boardPersistRepository.findById(id);
+            if (sessionUser.getId() != board.getUser().getId()) {
+                throw new RuntimeException("수정할 권한이 없습니다.");
+            }
+            boardPersistRepository.updateById(id, updateDTO);
+        } catch (Exception e) {
+            return "redirect:/board/" + id + "/update-form";
+        }
         return "redirect:/board/" + id;
     }
 }
