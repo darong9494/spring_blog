@@ -28,12 +28,7 @@ public class BoardController {
      */
     @GetMapping("/board/save-form")
     public String saveForm(HttpSession httpSession) {
-        // 로그인 여부 체크 - 즉 로그인한 사용자만 이 페이지 안에 들어올 수 있음
-        // 1. 인증검사
-        User sessionUser = (User) httpSession.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            return "redirect:/login-form";
-        }
+        // 1. 인증검사는 LoginInterceptor에서 먼저 처리함
         return "board/save-form";
     }
 
@@ -52,11 +47,6 @@ public class BoardController {
         // 이 요청시 사용자가 로그인을 했다면 로그인 정보를 세션 메모리에서 가져오면 된다.
         // 1. 세션에서 로그인한 사용자 정보 가져오기
         User sessionUser = (User) session.getAttribute("sessionUser");
-
-        // 2. 로그인 여부 확인
-        if (sessionUser == null) {
-            return "redirect:/login-form";
-        }
 
         try {
             // 3. 로그인 된 사용자
@@ -91,7 +81,6 @@ public class BoardController {
     @GetMapping("/board/{id}")
     public String detailPage(@PathVariable(name = "id") Integer id, Model model) {
         // 유효성 검사, 인증 검사
-        // Board board = boardNativeRepository.findById(id);
         Board board = boardPersistRepository.findById(id);
         model.addAttribute("board", board);
 
@@ -108,20 +97,19 @@ public class BoardController {
         log.info("--- 게시글 삭제 요청 ---");
         // 인증 검사
         User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            return "redirect:/login-form";
-        }
 
         try {
             // 삭제할 게시글 조회 (권한체크, 인가처리)
             Board board = boardPersistRepository.findById(id);
             if (board.getUser().getId() == sessionUser.getId()) {
-                // boardNativeRepository.deleteById(id);
                 boardPersistRepository.deleteById(id);
+            } else {
+                throw new Exception403("삭제 권한이 없습니다.");
             }
         } catch (Exception e) {
-            return "redirect:/";
+            throw new Exception403("삭제 권한이 없습니다.");
         }
+
         // PRG패턴 (Post >> Redirect >> Get) 적용
         return "redirect:/";
     }
@@ -132,16 +120,13 @@ public class BoardController {
     public String updateFormPage(@PathVariable(name = "id") Integer id, Model model, HttpSession session) {
         // 인증 처리
         User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            return "redirect:/login-form";
-        }
 
         // 인가처리
         // 사용자에게 해당 게시물 내용을 보여줘야 한다.
         // 조회 기능 - 게시글 id로
         Board board = boardPersistRepository.findById(id);
         if (sessionUser.getId() != board.getUser().getId()) {
-            throw new RuntimeException("수정 권한이 없습니다.");
+            throw new Exception403("수정 권한이 없습니다.");
         }
         model.addAttribute("board", board);
         return "board/update-form";
@@ -154,9 +139,7 @@ public class BoardController {
                              BoardRequest.UpdateDTO updateDTO, HttpSession session) {
         // 인증검사
         User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null) {
-            return "redirect:/login-form";
-        }
+
         // 유효성 검사
         try {
             updateDTO.validate();
