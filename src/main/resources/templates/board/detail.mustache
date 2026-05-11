@@ -59,6 +59,7 @@
                     </div>
                     {{#isOwner}}
                         <form action="/reply/{{id}}/delete" method="post">
+                            <input type="hidden" name="boardId" value="{{board.id}}" />
                             <button type="submit" class="btn btn-danger btn-sm">🗑️ 삭제</button>
                         </form>
                     {{/isOwner}}

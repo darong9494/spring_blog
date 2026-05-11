@@ -1,5 +1,6 @@
 package com.tenco.blog.reply;
 
+import com.tenco.blog._core.errors.Exception403;
 import com.tenco.blog._core.errors.Exception404;
 import com.tenco.blog.board.Board;
 import com.tenco.blog.board.BoardRepository;
@@ -54,5 +55,20 @@ public class ReplyService {
         Reply reply = saveDTO.toEntity(userEntity, boardEntity);
         replyRepository.save(reply);
         return reply;
+    }
+
+    @Transactional
+    public void 댓글삭제(Integer replyId, Integer sessionUserId) {
+        // 댓글 삭제 (조회)
+        Reply replyEntity = replyRepository.findById(replyId).orElseThrow(
+                () -> new Exception404("해당 댓글을 찾을 수 없습니다.")
+        );
+
+        // 인가처리
+       if (replyEntity.getUser().getId() != sessionUserId) {
+           throw new Exception403("댓글 삭제 권한이 없습니다.");
+       }
+       // 댓글 삭제
+       replyRepository.delete(replyEntity);
     }
 }

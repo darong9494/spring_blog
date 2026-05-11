@@ -4,7 +4,9 @@ import com.tenco.blog.user.User;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller // IoC
 @RequiredArgsConstructor // DI처리 이걸로 쓰기
@@ -23,5 +25,18 @@ public class ReplyController {
         replyService.댓글작성(saveDTO, sessionUser.getId());
         // 해당 게시글에 댓글 작성 후 리다이렉션 처리 (해당 게시글로)
         return "redirect:/board/" + saveDTO.getBoardId();
+    }
+
+    // 댓글 삭제하기
+    // "/reply/{{id}}/delete
+    // 경로 지정은 PathVariable이다.
+    @PostMapping("/reply/{id}/delete")
+    public String delete(@PathVariable(name = "id") Integer replyId,
+                         HttpSession session,
+                         @RequestParam(name = "boardId") Integer boardId) {
+        // 1. 인증검사 (인터셉터)
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        replyService.댓글삭제(replyId,sessionUser.getId());
+        return "redirect:/board/" + boardId;
     }
 }
